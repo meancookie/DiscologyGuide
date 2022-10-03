@@ -203,7 +203,7 @@ If beginning a new installation, it will be easier to just use the option of res
 ### Host apply VLAN
 1. Go to **UNIFI Devices** and click the **Switch** which you are using.
 2. On the right slider section and go to **Ports** section.
-3. Click **Port Number** which your **Host Device** connect to.
+3. Click **Port Number** which your **Host Device** connect to, this guide assumes you choose Port 3.
 5. Port Profile: Select the **discology vlan** on the **Port Profile** drop-down field.
 6. Click the **Apply Changes** Button.
 <img width="1436" alt="Screen Shot 2022-07-11 at 17 44 22" src="https://user-images.githubusercontent.com/3402605/178236943-7d908cee-1078-4b0e-9a7e-5a783fd5a108.png">
