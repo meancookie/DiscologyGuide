@@ -1,4 +1,11 @@
+# Discology Offline Server Network Setup Guide
+
+This guide will walk you through the setup needed to broadcast a Discology session offline. We'll first configure your Mac as a DHCP server with a static IP, then configure the Unifi Network Hardware and then test the setup end to end.
+
 # Setup DHCP Server
+
+We'll start by setting up a DHCP Server on your Mac, this will be used temporarily to set up the UniFi devices. Once you have your Unifi devices set up and assiged static IPs, this will no longer be needed.
+
 # macOS
 1. Config local wired network interface card to static IP
 - Open Network Preferences
@@ -6,19 +13,27 @@
 - Subnet Mask - 255.255.255.0
 - Router - 10.0.0.1
 
-2. Create DHCP Server config file: bootpd.plist
+2. Check the network interface id of your wired network
+
+- Open Terminal application and execute run `ifconfig`.
+- Find the line with ip same as 10.0.0.1. In my case shown below this was `en5`.
+```console
+en5: flags=8863<UP,BROADCAST,SMART,RUNNING,SIMPLEX,MULTICAST> mtu 1500
+	options=6467<RXCSUM,TXCSUM,VLAN_MTU,TSO4,TSO6,CHANNEL_IO,PARTIAL_CSUM,ZEROINVERT_CSUM>
+	ether 00:e0:4c:03:1b:1a 
+	inet6 fe80::439:7541:d7cb:a7e1%en5 prefixlen 64 secured scopeid 0x16 
+	inet 10.0.0.1 netmask 0xffffff00 broadcast 10.0.0.255
+	nd6 options=201<PERFORMNUD,DAD>
+	media: autoselect (1000baseT <full-duplex>)
+	status: active
+```
+
+3. Create DHCP Server config file: bootpd.plist
 - Open Terminal application and execute script as following
 ``` shell
 sudo vi /etc/bootpd.plist
 ```
-- To check the right network interface card id. Open Terminal application and execute script as following.
-  choose the line with ip same as 10.0.0.1
-```
-ifconfig
-```
-
-
-- Copy this content to bootpd.plist file, ensure the right network interface card id.
+- Copy the network interface identifier to the bootpd.plist file below, replace the right network interface card id `en0` with the id you found in the step above, in my example `en5`.
 ``` xml
 <?xml version="1.0" encoding="UTF-8"?>
 
@@ -114,22 +129,21 @@ sudo /bin/launchctl unload -w /System/Library/LaunchDaemons/bootps.plist
 ## Requirements
 - maxOS 10+
 
-
 # Setup Unifi Network Application
 ## Requirements
 - [Unifi Network Application](https://www.ui.com/download-software/)
-- Switch Enterprise 8 PoE (version: [6.2.14.13855](https://www.ui.com/download/unifi-switching-routing/unifi-switch-enterprise-8-poe){:target="_blank"})
+- Switch Enterprise 8 PoE (version: [6.2.14.13855](https://www.ui.com/download/unifi-switching-routing/unifi-switch-enterprise-8-poe))
 - Access Point FlexHD (version: [6.0.21.13673](https://www.ui.com/download/unifi/unifi-flex-hd)) ***optional***
 - Access Point AC Mesh Pro ***optional***
 - [How to upgrade unifi device firmware](https://www.youtube.com/watch?v=Rgh677uSEd4)
 
 ## Wiring
-- Notebook connect to Switch POE 1
-- Access Point connect to Switch POE 2
+- Laptop plugged into Switch POE 1
+- Access Point plugged into Switch POE 2
+- Laptop used for Discology will plug into Switch POE 3
 
 ## Method 1: Restore in the UniFi Startup Wizard
 If beginning a new installation, it will be easier to just use the option of restore from a previous backup as soon as the UniFi Startup Wizard launches, and select your [.unf](https://github.com/meancookie/discology/files/9119795/net_backup_07-15-2022_v7.1.66.unf.zip) file.
-
 
 ## Method 2: Setup Vlan and Multicast manually
 ### Create Vlan
@@ -193,6 +207,24 @@ If beginning a new installation, it will be easier to just use the option of res
 5. Port Profile: Select the **discology vlan** on the **Port Profile** drop-down field.
 6. Click the **Apply Changes** Button.
 <img width="1436" alt="Screen Shot 2022-07-11 at 17 44 22" src="https://user-images.githubusercontent.com/3402605/178236943-7d908cee-1078-4b0e-9a7e-5a783fd5a108.png">
+
+### Testing VLAN Configuration
+Hopefully everything went well and you are now ready to test this setup. You are now going to unplug your laptop from Port 1 which you have been using to configure your hardware and into Port 3 which you will use to stream.
+
+Before you plug your laptop into Port 3, you want to set your network device back to `Using DHCP` from `Manually`
+
+If everything works correctly, your laptop should now get an IP address in the `10.10.0.xxx` range, I got `10.10.0.48`.
+
+### Testing End To End
+Now that your network setup is complete you are ready to test end to end. You'll need a phone running the Discology app handy for this test in addition to your Laptop with the Discology Pro app. You'll need to have setup an offline stream in advance of going offline, you can't yet create a new offline stream while offline.
+
+* Ensure Wifi is turned off on your laptop and phone
+* Connect phone to WiFi network `discology vlan` you created above
+* Start Discology Pro on your laptop.
+* Go to the "Offline Streams" tab in Discology Pro
+* Start your offline stream, start OBS and ensure that you start the stream in OBS
+* Open your Discology app on your phone, you should see a banner in the top right corner for an offline event, click on that.
+* You should now be getting audio from your laptop to the phone all routed locally.
 
 ## Purge Unifi Network Application Site Data
 1. Delete the UniFi Network application from the Applications section.
